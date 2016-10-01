@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!-- see http://www.phpunit.de/wiki/Documentation -->
+<phpunit
+    colors="false"
+    backupGlobals="false"
+/>

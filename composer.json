@@ -1,0 +1,22 @@
+{
+    "name": "andares/adarts",
+    "description": "a darts class",
+    "keywords": ["darts", "trie"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andares Merigold",
+            "email": "andares@outlook.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "ext-msgpack": "*"
+    },
+    "require-dev": {
+        "tracy/tracy": "^2.4"
+    },
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}

@@ -1,2 +1,2 @@
 # adarts
-an darts class
+a darts class
