@@ -42,17 +42,35 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
             ->confirm();
         du($this->object);
 
+        $packed = serialize($this->object);
+        var_dump($packed);
+        du(strlen($packed));
+        $this->object = unserialize($packed);
+
         // 测试深回归
-        du($this->object->search('123毛 abcfwr'), 'result');
+        $result = $this->object->search('123毛 abcfwr');
+        du($result);
+        du($this->object->getWordsByState($result));
 
         // 测试失败指针
-//        du($this->object->search('abd毛 主d 毛 主 导k'), 'result');
+        $result = $this->object->search('abd毛 主d 毛 主 导k');
+        du($result);
+        du($this->object->getWordsByState($result));
+
+        $packed = serialize($this->object->simplify());
+        var_dump($packed);
+        du(strlen($packed));
+        $this->object = unserialize($packed);
 
         // 测试未找到
-//        du($this->object->search('abd毛习'), 'result');
+        $result = $this->object->search('abd毛习');
+        du($result);
+        du($this->object->getWordsByState($result));
 
         // 测试找到
-//        du($this->object->search('abd习bosseee'), 'result');
+        $result = $this->object->search('abd习bosseee');
+        du($result);
+        du($this->object->getWordsByState($result));
 
     }
 

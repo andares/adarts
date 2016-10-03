@@ -6,24 +6,18 @@ namespace Adarts;
  *
  * @author andares
  */
-class Searcher {
+class Seeker {
     use Common;
 
     private $check;
     private $base;
     private $fail_states;
 
-    private $match = [];
-
     public function __construct(array $check, array $base, array $fail_states) {
 
         $this->check    = $check;
         $this->base     = $base;
         $this->fail_states  = $fail_states;
-    }
-
-    public function getMatch(): array {
-        return $this->match;
     }
 
     public function forFail(array $haystack): int {
@@ -60,51 +54,57 @@ class Searcher {
         // 初始置state为0
         $pre_state = 0;
 
-        $count = 0;
+        // 开始搜索
         while (isset($haystack[$cursor])) {
-            $count++;
-            if ($count > 1200) {
-                throw new \Exception('error');
-            }
-
-            // 取code
+            // 根据当前 base 与匹配指针位计算出 state
+            // 未进入索引取不到 code 的 state = -1
             $state = isset($haystack[$cursor]) ?
                 $this->getState($base, $haystack[$cursor]) : -1;
-//            du(">> $cursor | $pre_state / $state = {$haystack[$cursor]} ++ $base", ">> cursor | pre_state / state = code ++ base");
 
-            // 根据state取出base，查找下一个state
+            // 根据 state 查找是否有 base
+            // 并且使用 check 位校验父节点 base 是否匹配
             if (isset($this->base[$state]) && $this->check[$state] == $base) {
-                $this->match[] = $haystack[$cursor];
+                // 根据 base 位不为负检查是否为叶子节点
                 if ($this->base[$state] > 0) {
+                    // 非叶子节点 base 置为下层节点 check
                     $base   = $this->base[$state];
+                    // 检验位推进
                     $verify++;
+                    // 设置 pre state 用于调用失败指针
                     $pre_state = $state;
-                } else { // 遇到叶子节点，匹配成功
+
+                } else {
+                    // 遇到叶子节点，匹配成功
                     return $state;
                 }
             } else {
-                // 未找到state，匹配失败
+                // state 检查失败
                 if (isset($this->fail_states[$pre_state])) {
-                    // 如果有fail指针，退一格跳转并重置开始位
+                    // 如果有 fail 指针，重置 base 到失败指针，退一步继续匹配
                     $base   = $this->check[$this->fail_states[$pre_state]];
                     $start += $verify - 1;
-                    du("$start += $verify - 1");
+
                 } else {
+                    // 无 fail 指针，重置 base 到 root
                     $base   = $this->base[0];
                     if ($acm_mode) {
                         // ac自动机模式下不回滚匹配进度
                         $start += $verify;
-                    } else { // 否则开始位前移一步继续匹配
-                        $start++;
                     }
+                    // 开始位总是要步进
+                    $start++;
                 }
+                // 重置检测位 pre state
                 $verify     = 0;
                 $pre_state  = 0;
-                $this->match = [];
             }
+
+            // 计算出新的（或相同的）检测指针
             $cursor = $start + $verify;
-            du("$cursor = $start + $verify", '$cursor = $start + $verify');
+//            du("$cursor = $start + $verify", '$cursor = $start + $verify');
         }
+
+        // 没找到
         return 0;
     }
 }
