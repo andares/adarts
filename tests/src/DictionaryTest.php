@@ -34,12 +34,26 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
      */
     public function testAdd() {
         $this->object
-            ->add("毛 abc早上好qqqe")
+            ->add("毛 abcfd")
+            ->add("bcev")
             ->add("毛 主 席")
             ->add("主 导")
             ->add("习boss")
-            ->compress();
+            ->confirm();
         du($this->object);
+
+        // 测试深回归
+        du($this->object->search('123毛 abcfwr'), 'result');
+
+        // 测试失败指针
+//        du($this->object->search('abd毛 主d 毛 主 导k'), 'result');
+
+        // 测试未找到
+//        du($this->object->search('abd毛习'), 'result');
+
+        // 测试找到
+//        du($this->object->search('abd习bosseee'), 'result');
+
     }
 
     /**

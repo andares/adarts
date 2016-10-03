@@ -23,21 +23,37 @@ namespace Adarts;
  * @author andares
  */
 class Dictionary {
+    use Common;
 
     private $check  = [];
     private $base   = [];
-
     private $index  = [];
     private $index_count = 0;
+    private $index_code  = [];
+    private $fail_states = [];
 
     private $tmp_tree = [];
     private $begin_used = [];
 
     public function __construct() {
         // 构建根
-        $state = $this->getState(0);
-        $this->check[$state]    = 0;
-        $this->base[$state]     = 1;
+        $this->check[0]    = 0;
+        $this->base[0]     = 1;
+    }
+
+    public function search(string $sample): Result {
+        // 先生成用于搜索的转义串
+        $haystack   = [];
+        foreach ($this->splitWords($sample) as $char) {
+            $haystack[] = $this->index[$char] ?? 0;
+        }
+
+        $searcher   = new Searcher($this->check, $this->base, $this->fail_states);
+        $found =  $searcher($haystack);
+
+        // 生成报告
+        $result = new Result($found, $searcher->getMatch(), $this);
+        return $result;
     }
 
     /**
@@ -60,24 +76,91 @@ class Dictionary {
     }
 
     /**
-     * 构建失败指针
+     *
+     * @param array $haystack
+     * @return string
+     */
+    public function translate(array $haystack): string {
+        if (!$this->index_code) {
+            foreach ($this->index as $words => $code) {
+                $this->index_code[$code] = $words;
+            }
+        }
+
+        $result = '';
+        foreach ($haystack as $code) {
+            $result .= $this->index_code[$code];
+        }
+        return $result;
+    }
+
+    /**
+     * 添加完毕
      * @return self
      */
-    public function prepare(): self {
-        foreach ($this->traverseTree() as $a) {
+    public function confirm(): self {
+//        return $this->compress();
+        return $this->compress()->makeFailStates();
+    }
 
-        }
+    /**
+     * 创建失败指针
+     * @return self
+     */
+    private function makeFailStates(): self {
+        $searcher   = new Searcher($this->check, $this->base, []);
+        $this->traverseTreeForMakeFailCursor($this->tmp_tree, [], $searcher);
         return $this;
     }
 
     /**
-     * 将临时Trie树压缩成Darts
-     * @return \self
+     * 遍历tmp_tree创建失败指针
+     * @param array $tree
+     * @param array $haystack
+     * @param \Adarts\Searcher $searcher
+     * @param int $code
      */
-    public function compress(): self {
-        $base = $this->base[$this->getState(0)];
+    private function traverseTreeForMakeFailCursor(array &$tree,
+        array $haystack, Searcher $searcher, int $code = 0) {
+
+        $code && $haystack[] = $code;
+        foreach ($tree as $code => $children_tree) {
+            $this->searchFailCursor($haystack, $searcher, $code);
+            if ($children_tree) {
+                $this->traverseTreeForMakeFailCursor($children_tree,
+                    $haystack, $searcher, $code);
+            }
+        }
+    }
+
+    private function searchFailCursor(array $haystack,
+        Searcher $searcher, int $code) {
+
+        if (!$haystack) {
+            return;
+        }
+
+        $haystack[] = $code;
+        $self = $searcher->forFail($haystack);
+        array_shift($haystack);
+        do {
+            $state = $searcher->forFail($haystack);
+            if ($state) {
+                $this->fail_states[$self] = $state;
+                break;
+            }
+            array_shift($haystack);
+        } while ($haystack);
+    }
+
+    /**
+     * 将临时Trie树压缩成Darts
+     * @return self
+     */
+    private function compress(): self {
+        $base = $this->base[0];
         $this->beginUse($base);
-        $this->traverseTree($this->tmp_tree, $base);
+        $this->traverseTreeForCompress($this->tmp_tree, $base);
         return $this;
     }
 
@@ -86,7 +169,7 @@ class Dictionary {
      * @param array $tree
      * @param int $base
      */
-    private function traverseTree(array &$tree, int $base) {
+    private function traverseTreeForCompress(array &$tree, int $base) {
         // 先处理当前层级
         foreach ($tree as $code => $children_tree) {
             $state = $this->getState($base, $code);
@@ -98,10 +181,16 @@ class Dictionary {
             $state = $this->getState($base, $code);
 
             // 计算此子级的check 即当前节点的base
-            $next_base = $this->searchBegin($children_tree);
-            $this->base[$state] = $next_base;
+            if ($children_tree) {
+                $next_base = $this->findBegin($children_tree);
+                $this->beginUse($next_base);
+                $this->base[$state] = $next_base;
 
-            $this->traverseTree($children_tree, $next_base);
+                $this->traverseTreeForCompress($children_tree, $next_base);
+            } else {
+                // 叶节点
+                $this->base[$state] = -$this->check[$state];
+            }
         }
     }
 
@@ -109,7 +198,7 @@ class Dictionary {
      * 暂时用步进法搜索
      * @return int
      */
-    private function searchBegin(array &$tree): int {
+    private function findBegin(array &$tree): int {
         $base  = 1;
         $found      = false;
         while (!$found) {
@@ -167,19 +256,6 @@ class Dictionary {
         $this->index_count++;
         $this->index[$char] = $this->index_count;
         return $this->index_count;
-    }
-
-    /**
-     * 取state
-     * @param int $offset
-     * @param int $code
-     * @return int
-     */
-    private function getState(int $offset, int $code = 0): int {
-        $state = $offset + $code;
-        // dart clone算法要求+1
-        $state++;
-        return $state;
     }
 
     /**
