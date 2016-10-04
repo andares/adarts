@@ -48,12 +48,12 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         $this->object = unserialize($packed);
 
         // 测试深回归
-        $result = $this->object->search('123毛 abcfwr');
+        $result = $this->object->seek('123毛 abcfwr');
         du($result);
         du($this->object->getWordsByState($result));
 
         // 测试失败指针
-        $result = $this->object->search('abd毛 主d 毛 主 导k');
+        $result = $this->object->seek('abd毛 主d 毛 主 导k');
         du($result);
         du($this->object->getWordsByState($result));
 
@@ -63,12 +63,12 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         $this->object = unserialize($packed);
 
         // 测试未找到
-        $result = $this->object->search('abd毛习');
+        $result = $this->object->seek('abd毛习');
         du($result);
         du($this->object->getWordsByState($result));
 
         // 测试找到
-        $result = $this->object->search('abd习bosseee');
+        $result = $this->object->seek('abd习bosseee');
         du($result);
         du($this->object->getWordsByState($result));
 

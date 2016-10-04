@@ -57,13 +57,13 @@ $dict->confirm();
 字典创建完后就可以用于搜索，例如：
 
 ```
-$result = $dict->search('get out! asshole!');
+$result = $dict->seek('get out! asshole!');
 if ($result) {
     throw new \LogicException('you could not say it');
 }
 ```
 
-* search() 搜索一个字串，看是否有字典中匹配的词。返回一个int型，找不到返回0
+* seek() 搜索一个字串，看是否有字典中匹配的词。返回一个int型，找不到返回0
 
 在上面的例子中，我们假设```asshole```在字典中，那么返回的```$result```即不为0
 
@@ -74,7 +74,7 @@ if ($result) {
 稍稍改进一下上面的代码：
 
 ```
-$result = $dict->search('get out! asshole!');
+$result = $dict->seek('get out! asshole!');
 if ($result) {
     throw new \LogicException('you could not say ' . $dict->getWordsByState($result));
 }
@@ -86,7 +86,7 @@ if ($result) {
 
 因为支持失败指针，所以state的转换不是线性的，当通过失败指针跳到其他词条（的某个节点）时，还没找到好的方法（有效率地）逆推到起始节点的办法。
 
-因此```search()```只能告诉你是否有找到，最多带一个找到了什么，如果需要实现知道位置的功能，可以使用找到词条另外调php方法去处理。在已经明确结果的 下，单词条的查询效率不会有什么问题。
+因此```seek()```只能告诉你是否有找到，最多带一个找到了什么，如果需要实现知道位置的功能，可以使用找到词条另外调php方法去处理。在已经明确结果的 下，单词条的查询效率不会有什么问题。
 
 ## 序列化
 
@@ -113,7 +113,7 @@ redis()->set('dict', $packed);
 $packed = redis()->get('dict');
 $dict = unserialize($packed);
 
-$result = $dict->search($some_words);
+$result = $dict->seek($some_words);
 // ...搜索后的1000行业务代码
 ```
 

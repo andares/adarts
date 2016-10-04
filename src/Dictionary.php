@@ -35,7 +35,7 @@ class Dictionary implements \Serializable {
      * @param string $sample
      * @return int
      */
-    public function search(string $sample): int {
+    public function seek(string $sample): int {
         // 先生成用于搜索的转义串
         $haystack   = [];
         foreach ($this->splitWords($sample) as $char) {
@@ -145,7 +145,7 @@ class Dictionary implements \Serializable {
 
         $code && $haystack[] = $code;
         foreach ($tree as $code => $children_tree) {
-            $this->searchFailCursor($haystack, $seeker, $code);
+            $this->gainFailCursor($haystack, $seeker, $code);
             if ($children_tree) {
                 $this->traverseTreeForMakeFailCursor($children_tree,
                     $haystack, $seeker, $code);
@@ -160,7 +160,7 @@ class Dictionary implements \Serializable {
      * @param int $code
      * @return void
      */
-    private function searchFailCursor(array $haystack,
+    private function gainFailCursor(array $haystack,
         Seeker $seeker, int $code) {
 
         if (!$haystack) {
