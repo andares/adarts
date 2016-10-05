@@ -89,7 +89,7 @@ class Seeker {
                     $base   = $this->base[0];
                     if ($acm_mode) {
                         // ac自动机模式下不回滚匹配进度
-                        $start += $verify;
+                        $start += $verify - 1;
                     }
                     // 开始位总是要步进
                     $start++;
