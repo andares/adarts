@@ -39,10 +39,12 @@ class Seeker {
         return $state;
     }
 
-    public function __invoke(array $haystack): int {
-        // 确定为ac自动机模式
-        $acm_mode = true;
+    public function __invoke(array $haystack): \Generator {
+        $it = $this->process($haystack);
+        return $it;
+    }
 
+    private function process(array $haystack) {
         // 当前base
         $base   = $this->base[0];
         // 开始位指针
@@ -55,7 +57,13 @@ class Seeker {
         $pre_state = 0;
 
         // 开始搜索
+        $count = 0;
         while (isset($haystack[$cursor])) {
+            $count++;
+            if ($count > 1000) {
+                die('vvv');
+            }
+
             // 根据当前 base 与匹配指针位计算出 state
             // 未进入索引取不到 code 的 state = -1
             $state = isset($haystack[$cursor]) ?
@@ -75,7 +83,13 @@ class Seeker {
 
                 } else {
                     // 遇到叶子节点，匹配成功
-                    return $state;
+                    yield $state;
+
+                    // 重置搜索位
+                    $base   = $this->base[0];
+                    $start++;
+                    $verify = 0;
+                    $pre_state = 0;
                 }
             } else {
                 // state 检查失败
@@ -87,12 +101,7 @@ class Seeker {
                 } else {
                     // 无 fail 指针，重置 base 到 root
                     $base   = $this->base[0];
-                    if ($acm_mode) {
-                        // ac自动机模式下不回滚匹配进度
-                        $start += $verify - 1;
-                    }
-                    // 开始位总是要步进
-                    $start++;
+                    $verify ? ($start += $verify) : $start++;
                 }
                 // 重置检测位 pre state
                 $verify     = 0;
@@ -104,7 +113,7 @@ class Seeker {
 //            du("$cursor = $start + $verify", '$cursor = $start + $verify');
         }
 
-        // 没找到
+        // 搜索结束
         return 0;
     }
 }

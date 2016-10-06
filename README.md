@@ -6,11 +6,12 @@
 
 因为并不精通算法，实现上更偏向于业务代码风格，较多地利用了php数组双向链表的特性。算法实现上若有不对，或是有更好的优化方案，**请狠狠给个merge request！**
 
-## 开发计划
+## 更新与路线图
 
-|计划功能|目标版本|
+|功能描述|实现版本|
 |---|---|
-|增加seekMore功能，可一次匹配所有命中词| - |
+|增加批量查找功能，可一次获取所有命中词| 1.3 |
+|修正查找失败时的指针偏移bug| 1.3 |
 
 ## 安装
 
@@ -63,30 +64,42 @@ $dict->confirm();
 字典创建完后就可以用于搜索，例如：
 
 ```
-$result = $dict->seek('get out! asshole!');
+$result = $dict->seek('get out! asshole!')->current();
 if ($result) {
     throw new \LogicException('you could not say it');
 }
 ```
 
-* seek() 搜索一个字串，看是否有字典中匹配的词。返回一个int型，找不到返回0
+* seek() 搜索一个字串，看是否有字典中匹配的词。返回一个生成器对象，所以请使用```current()```方法获取第一个匹配词。
 
-在上面的例子中，我们假设```asshole```在字典中，那么返回的```$result```即不为0
+在上面的例子中，我们假设```asshole```在字典中，那么```current()```方法即可得到一个不为0的整数。
 
-事实上，$result即Darts中的**叶子节点state**
+> 事实上，$result即Darts中的**叶子节点state**
+
+**如果传入的字串中未包含字典中的内容，由于迭代器特性，则会返回一个null值，这点需要注意！**
 
 ## 根据state获取匹配词
 
 稍稍改进一下上面的代码：
 
 ```
-$result = $dict->seek('get out! asshole!');
+$result = $dict->seek('get out! asshole!')->current();
 if ($result) {
     throw new \LogicException('you could not say ' . $dict->getWordsByState($result));
 }
 ```
 
 * getWordsByState() 根据**叶子节点state**获取找到的匹配词，如果没意外上面取到的是asshole
+
+## 查找多个命中词
+
+```
+foreach ($dict->seek('get out! asshole!') as $result) {
+    echo "you could not say ' . $dict->getWordsByState($result);
+}
+```
+
+利用迭代器特性，foreach返回的生成器对象即可获取所有命中词条。
 
 ### 关于找到的位置
 
@@ -119,7 +132,7 @@ redis()->set('dict', $packed);
 $packed = redis()->get('dict');
 $dict = unserialize($packed);
 
-$result = $dict->seek($some_words);
+$result = $dict->seek($some_words)->current();
 // ...搜索后的1000行业务代码
 ```
 

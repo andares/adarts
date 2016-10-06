@@ -43,34 +43,47 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         du($this->object);
 
         $packed = serialize($this->object);
-        var_dump($packed);
-        du(strlen($packed));
+//        var_dump($packed);
+//        du(strlen($packed));
         $this->object = unserialize($packed);
 
+        // 测试找批量
+        $result_list = [
+            '毛 abcfd'  => 1,
+            '主 导'     => 1,
+            '习boss'    => 1,
+        ];
+        foreach ($this->object->seek('abd毛 主毛 abcfd 毛 主 导习bossk') as $result) {
+            du($result);
+            $word = $this->object->getWordsByState($result);
+            $this->assertTrue(isset($result_list[$word]));
+            unset($result_list[$word]);
+        }
+
         // 测试深回归
-        $result = $this->object->seek('123毛 abcfwr');
+        $result = $this->object->seek('123毛 abcfwr')->current();
         du($result);
-        du($this->object->getWordsByState($result));
+        $this->assertEquals('', $this->object->getWordsByState($result));
 
         // 测试失败指针
-        $result = $this->object->seek('abd毛 主d 毛 主 导k');
+        $result = $this->object->seek('abd毛 主d 毛 主 导k')->current();
         du($result);
-        du($this->object->getWordsByState($result));
+        $this->assertEquals('主 导', $this->object->getWordsByState($result));
 
+        // 简化
         $packed = serialize($this->object->simplify());
-        var_dump($packed);
-        du(strlen($packed));
+//        var_dump($packed);
+//        du(strlen($packed));
         $this->object = unserialize($packed);
 
         // 测试未找到
-        $result = $this->object->seek('abd毛习');
+        $result = $this->object->seek('abd毛习')->current();
         du($result);
-        du($this->object->getWordsByState($result));
+        $this->assertEquals('', $this->object->getWordsByState($result));
 
         // 测试找到
-        $result = $this->object->seek('abd习bosseee');
-        du($result);
-        du($this->object->getWordsByState($result));
+        $result = $this->object->seek('abd习bosseee')->current();
+        $this->assertEquals(33, $result);
 
     }
 
