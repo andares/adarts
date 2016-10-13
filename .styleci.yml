@@ -1,0 +1,28 @@
+preset: laravel
+
+risky: false
+
+enabled:
+  - unalign_double_arrow
+
+disabled:
+  - short_array_syntax
+
+
+finder:
+  exclude:
+    - "tests"
+  name:
+    - "*.php"
+#  not-name:
+#    - "*Stub.php"
+#  contains:
+#    - "Foo"
+#  not-contains:
+#    - "config"
+#  path:
+#    - "foo/Stuff"
+#  not-path:
+#    - "libraries"
+#  depth:
+#    - "< 3"

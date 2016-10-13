@@ -1,7 +1,7 @@
 {
     "name": "andares/adarts",
     "description": "a darts class",
-    "keywords": ["darts", "trie"],
+    "keywords": ["darts", "dart", "trie", "tree"],
     "license": "MIT",
     "authors": [
         {
