@@ -3,11 +3,9 @@ preset: laravel
 risky: false
 
 enabled:
-  - unalign_double_arrow
 
 disabled:
-  - short_array_syntax
-
+  - braces
 
 finder:
   exclude:
