@@ -35,7 +35,7 @@ class Dictionary implements \Serializable {
      * @param string $sample
      * @return \Generator
      */
-    public function seek(string $sample): \Generator {
+    public function seek(string $sample, int $limit = 0, int $skip = 0): \Generator {
         // 先生成用于搜索的转义串
         $haystack   = [];
         foreach ($this->splitWords($sample) as $char) {
@@ -43,7 +43,7 @@ class Dictionary implements \Serializable {
         }
 
         $seeker   = new Seeker($this->check, $this->base, $this->fail_states);
-        return $seeker($haystack);
+        return $seeker($haystack, $limit, $skip);
     }
 
     /**

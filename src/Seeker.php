@@ -39,16 +39,18 @@ class Seeker {
         return $state;
     }
 
-    public function __invoke(array $haystack): \Generator {
-        $it = $this->process($haystack);
+    public function __invoke(array $haystack,
+        int $limit = 0, int $skip = 0): \Generator {
+
+        $it = $this->process($haystack, $limit, $skip);
         return $it;
     }
 
-    private function process(array $haystack) {
+    private function process(array $haystack, int $limit = 0, int $skip = 0) {
         // 当前base
         $base   = $this->base[0];
         // 开始位指针
-        $start  = 0;
+        $start  = $skip;
         // 检测位指针
         $verify = 0;
         // 预计算实际匹配指针
@@ -57,13 +59,8 @@ class Seeker {
         $pre_state = 0;
 
         // 开始搜索
-        $count = 0;
-        while (isset($haystack[$cursor])) {
-            $count++;
-            if ($count > 1000) {
-                die('vvv');
-            }
-
+        $limit && $limit += $skip;
+        while (isset($haystack[$cursor]) && (!$limit || $start < $limit)) {
             // 根据当前 base 与匹配指针位计算出 state
             // 未进入索引取不到 code 的 state = -1
             $state = isset($haystack[$cursor]) ?
