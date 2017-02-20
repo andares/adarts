@@ -18,7 +18,7 @@ class Dictionary implements \Serializable {
     private $index_count    = 0;
     private $index_code     = [];
     private $tmp_tree       = [];
-    private $words_states   = [];
+    private $word_states    = [];
     private $begin_used     = [];
 
     /**
@@ -38,7 +38,7 @@ class Dictionary implements \Serializable {
     public function seek(string $sample, int $limit = 0, int $skip = 0): \Generator {
         // 先生成用于搜索的转义串
         $haystack   = [];
-        foreach ($this->splitWords($sample) as $char) {
+        foreach ($this->split($sample) as $char) {
             $haystack[] = $this->index[$char] ?? 0;
         }
 
@@ -53,7 +53,7 @@ class Dictionary implements \Serializable {
     public function simplify(): self {
         $this->index_code =
             $this->tmp_tree =
-            $this->words_states =
+            $this->word_states =
             $this->begin_used = [];
         $this->index_count = 0;
         return $this;
@@ -61,13 +61,13 @@ class Dictionary implements \Serializable {
 
     /**
      * 添加词进字典
-     * @param string $words
+     * @param string $word
      * @return self
      */
-    public function add(string $words): self {
+    public function add(string $word): self {
         // 构建临时树
         $tmp_tree = &$this->tmp_tree;
-        foreach ($this->splitWords($words) as $char) {
+        foreach ($this->split($word) as $char) {
             // 加入索引
             $code = $this->index($char);
 
@@ -79,12 +79,22 @@ class Dictionary implements \Serializable {
     }
 
     /**
-     * 根据叶子节点 state 拿words
+     * 根据叶子节点 state 拿word
      * @param int $state
      * @return string
      */
-    public function getWordsByState($state): string {
-        return $this->words_states[$state] ?? '';
+    public function getWordByState($state): string {
+        return $this->word_states[$state] ?? '';
+    }
+
+    /**
+     * 版本兼容性方法，已作废
+     * @deprecated since version 1.5
+     * @param int $state
+     * @return string
+     */
+    public function getWordsByState($state) {
+        return $this->getWordByState($state);
     }
 
     /**
@@ -108,8 +118,8 @@ class Dictionary implements \Serializable {
      */
     private function indexCode($force = false) {
         if (!$this->index_code || $force) {
-            foreach ($this->index as $words => $code) {
-                $this->index_code[$code] = $words;
+            foreach ($this->index as $word => $code) {
+                $this->index_code[$code] = $word;
             }
         }
     }
@@ -209,7 +219,7 @@ class Dictionary implements \Serializable {
         // 再处理子级
         foreach ($tree as $code => $children_tree) {
             $state = $this->getState($base, $code);
-            $words = $prefix . $this->index_code[$code];
+            $word  = $prefix . $this->index_code[$code];
 
             // 计算此子级的check 即当前节点的base
             if ($children_tree) {
@@ -217,13 +227,13 @@ class Dictionary implements \Serializable {
                 $this->beginUse($next_base);
                 $this->base[$state] = $next_base;
 
-                $this->traverseTreeForCompress($children_tree, $next_base, $words);
+                $this->traverseTreeForCompress($children_tree, $next_base, $word);
             } else {
                 // 叶节点
                 $this->base[$state] = -$this->check[$state];
 
-                // 创建 words 的 state 索引
-                $this->words_states[$state] = $words;
+                // 创建 word 的 state 索引
+                $this->word_states[$state] = $word;
             }
         }
     }
@@ -294,31 +304,31 @@ class Dictionary implements \Serializable {
 
     /**
      * utf8拆字
-     * @param string $words
+     * @param string $str
      */
-    private function splitWords(string $words) {
-        $len = strlen($words);
+    private function split(string $str) {
+        $len = strlen($str);
         for ($i = 0; $i < $len; $i++) {
-            $c = $words[$i];
+            $c = $str[$i];
             $n = ord($c);
             if (($n >> 7) == 0) {
                 //0xxx xxxx, asci, single
                 yield $c;
             } elseif (($n >> 4) == 15) { //1111 xxxx, first in four char
                 if ($i < $len - 3) {
-                    yield $c . $words[$i + 1] . $words[$i + 2] . $words[$i + 3];
+                    yield $c . $str[$i + 1] . $str[$i + 2] . $str[$i + 3];
                     $i += 3;
                 }
             } elseif (($n >> 5) == 7) {
                 //111x xxxx, first in three char
                 if ($i < $len - 2) {
-                    yield $c . $words[$i + 1] . $words[$i + 2];
+                    yield $c . $str[$i + 1] . $str[$i + 2];
                     $i += 2;
                 }
             } elseif (($n >> 6) == 3) {
                 //11xx xxxx, first in two char
                 if ($i < $len - 1) {
-                    yield $c . $words[$i + 1];
+                    yield $c . $str[$i + 1];
                     $i++;
                 }
             }
@@ -337,7 +347,7 @@ class Dictionary implements \Serializable {
         $data['index_count']    = $this->index_count;
         $data['index_code']     = $this->index_code;
         $data['tmp_tree']       = $this->tmp_tree;
-        $data['words_states']   = $this->words_states;
+        $data['word_states']    = $this->word_states;
         $data['begin_used']     = $this->begin_used;
         return msgpack_pack($data);
     }
@@ -355,7 +365,7 @@ class Dictionary implements \Serializable {
         $this->index_count  = $data['index_count'];
         $this->index_code   = $data['index_code'];
         $this->tmp_tree     = $data['tmp_tree'];
-        $this->words_states = $data['words_states'];
+        $this->word_states  = $data['word_states'] ?? $data['words_states'];
         $this->begin_used   = $data['begin_used'];
     }
 

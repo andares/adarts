@@ -10,9 +10,16 @@
 
 |功能描述|实现版本|
 |---|---|
+|调整部分方法及属性命名| 1.5 |
 |搜索时增加```$limit```和```$skip```参数| 1.4 |
 |增加批量查找功能，可一次获取所有命中词| 1.3 |
 |修正查找失败时的指针偏移bug| 1.3 |
+
+## 更新内容详述
+
+### 1.5版本改动
+
+> * 变更```getWordsByState()```方法更名为```getWordByState()```，原方法名做兼容性留存
 
 ## 安装
 
@@ -115,17 +122,17 @@ $result = $dict->seek('违法犯规', $limit, $skip)->current();
 ```
 $result = $dict->seek('get out! asshole!')->current();
 if ($result) {
-    throw new \LogicException('you could not say ' . $dict->getWordsByState($result));
+    throw new \LogicException('you could not say ' . $dict->getWordByState($result));
 }
 ```
 
-* getWordsByState() 根据**叶子节点state**获取找到的匹配词，如果没意外上面取到的是asshole
+* getWordByState() 根据**叶子节点state**获取找到的匹配词，如果没意外上面取到的是asshole
 
 ## 查找多个命中词
 
 ```
 foreach ($dict->seek('get out! asshole!') as $result) {
-    echo "you could not say ' . $dict->getWordsByState($result);
+    echo "you could not say ' . $dict->getWordByState($result);
 }
 ```
 
@@ -162,7 +169,7 @@ redis()->set('dict', $packed);
 $packed = redis()->get('dict');
 $dict = unserialize($packed);
 
-$result = $dict->seek($some_words)->current();
+$result = $dict->seek($str)->current();
 // ...搜索后的1000行业务代码
 ```
 
@@ -178,7 +185,7 @@ $packed = serialize($dict->simplify());
 
 这样做会只留搜索必要的数据，让序列化后的数据更小，读出和反序列化更快。
 
-> 注意```simplify()```之后的字典对象去掉了**词条states索引**，这会导致```getWordsByState()```方法不可用（总是返回空串）。所以对于有两种需求的情况来说，推荐精简与完整的字典序列化各存一份，以适用不同的场景。
+> 注意```simplify()```之后的字典对象去掉了**词条states索引**，这会导致```getWordByState()```方法不可用（总是返回空串）。所以对于有两种需求的情况来说，推荐精简与完整的字典序列化各存一份，以适用不同的场景。
 
 ## 感谢
 

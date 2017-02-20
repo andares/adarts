@@ -54,7 +54,7 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
             '习boss'    => 1,
         ];
         foreach ($this->object->seek('abd毛 主毛 abcfd 毛 主 导习bossk') as $result) {
-            $word = $this->object->getWordsByState($result);
+            $word = $this->object->getWordByState($result);
             $this->assertTrue(isset($result_list[$word]));
             unset($result_list[$word]);
         }
@@ -63,12 +63,12 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         // 测试深回归
         $result = $this->object->seek('123毛 abcfwr')->current();
         $this->assertNull($result);
-        $this->assertEquals('', $this->object->getWordsByState($result));
+        $this->assertEquals('', $this->object->getWordByState($result));
 
         // 测试失败指针
         $result = $this->object->seek('abd毛 主d 毛 主 导k')->current();
         $this->assertEquals(26, $result);
-        $this->assertEquals('主 导', $this->object->getWordsByState($result));
+        $this->assertEquals('主 导', $this->object->getWordByState($result));
 
         // 简化
         $packed = serialize($this->object->simplify());
@@ -79,7 +79,7 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         // 测试未找到
         $result = $this->object->seek('abd毛习')->current();
         $this->assertNull($result);
-        $this->assertEquals('', $this->object->getWordsByState($result));
+        $this->assertEquals('', $this->object->getWordByState($result));
 
         // 测试找到
         $result = $this->object->seek('abd习bosseee')->current();
@@ -88,7 +88,10 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         // 测试限制
         foreach ($this->object->seek('主 导 习boss bcev', 3) as $result) {}
         $this->assertEquals(26, $result);
-        foreach ($this->object->seek('主 导 习boss bcev', 1, 3) as $result) {}
+
+        // $result归位
+        $result = 0;
+        foreach ($this->object->seek('主 导 习boss bcev', 2, 3) as $result) {}
         $this->assertEquals(33, $result);
 
     }
