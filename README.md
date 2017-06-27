@@ -55,7 +55,7 @@ $dict->add('word1')
 
 ```
 <?php
-use Adarts;
+use Adarts\Dictionary;
 
 // ...这里是从mysql中读取词条列表到$collection变量的1000行代码
 $collection = MySQL::get();
