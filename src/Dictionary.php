@@ -73,10 +73,15 @@ class Dictionary implements \Serializable {
 
             // 插树
             $tmp_tree = &$this->putNode($code, $tmp_tree);
+
+            // 抛弃无用词条
             if ($tmp_tree == $this->tmp_tree) {
                 break;
             }
         }
+
+        // 修剪trie树，抛弃无用词条
+        $tmp_tree && $tmp_tree = [];
 
         return $this;
     }

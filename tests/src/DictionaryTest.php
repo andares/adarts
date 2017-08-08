@@ -28,6 +28,17 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
 
     }
 
+    public function testForBug() {
+        $this->object
+            ->add("妓女")
+            ->add("妓")
+            ->confirm();
+        du($this->object);
+        $result = $this->object->seek('天下大妓同')->current();
+        du($result);
+        du($this->object->getWordByState($result));
+    }
+
     /**
      * @covers Adarts\Dictionary::add
      * @todo   Implement testAdd().
@@ -38,8 +49,8 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
             ->add("bcev")
             ->add("毛 主 席")
             ->add("主 导")
-            ->add("习boss")
             ->add("习boss威武") // 这是无效词条
+            ->add("习boss")
             ->confirm();
         du($this->object);
 
