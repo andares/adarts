@@ -81,7 +81,7 @@ class Dictionary implements \Serializable {
         }
 
         // 修剪trie树，抛弃无用词条
-        $tmp_tree && $tmp_tree = [];
+        $tmp_tree && $tmp_tree != $this->tmp_tree && $tmp_tree = [];
 
         return $this;
     }

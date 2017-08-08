@@ -32,6 +32,9 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
         $this->object
             ->add("妓女")
             ->add("妓")
+            ->add("妓飞飞")
+            ->add("妓飞")
+            ->add("走开")
             ->confirm();
         du($this->object);
         $result = $this->object->seek('天下大妓同')->current();
