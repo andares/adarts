@@ -73,6 +73,9 @@ class Dictionary implements \Serializable {
 
             // 插树
             $tmp_tree = &$this->putNode($code, $tmp_tree);
+            if ($tmp_tree == $this->tmp_tree) {
+                break;
+            }
         }
 
         return $this;
@@ -283,6 +286,10 @@ class Dictionary implements \Serializable {
      * @return array
      */
     private function &putNode(int $code, array &$tmp_tree): array {
+        if (isset($tmp_tree[$code]) && $tmp_tree[$code] == []) {
+            return $this->tmp_tree;
+        }
+
         !isset($tmp_tree[$code]) && $tmp_tree[$code] = [];
         return $tmp_tree[$code];
     }

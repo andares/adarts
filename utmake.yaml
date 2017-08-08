@@ -1,0 +1,5 @@
+class_prefix:   Adarts
+class_dir:      src/classes
+tests_dir:      tests/src
+bootstrap:      tests/bootstrap.php
+configuration:  tests/configuration.xml

@@ -39,6 +39,7 @@ class DictionaryTest extends \PHPUnit_Framework_TestCase {
             ->add("毛 主 席")
             ->add("主 导")
             ->add("习boss")
+            ->add("习boss威武") // 这是无效词条
             ->confirm();
         du($this->object);
 
