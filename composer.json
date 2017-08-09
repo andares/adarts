@@ -10,11 +10,13 @@
         }
     ],
     "require": {
-        "php": ">=7.0.0",
-        "ext-msgpack": "*"
+        "php": "^7.1.0"
     },
     "require-dev": {
         "tracy/tracy": "^2.4"
+    },
+    "suggest": {
+        "ext-msgpack": "Allow serialize dictionary by msgpack, it is compact & faster"
     },
     "autoload": {
         "classmap": ["src/"]
